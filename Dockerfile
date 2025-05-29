@@ -12,7 +12,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-RUN python -m venv /opt/venv
+RUN python -m venv /opt/venv && \
+    /opt/venv/bin/pip install --upgrade pip setuptools==80.9.0 wheel
+
 ENV PATH="/opt/venv/bin:$PATH"
 
 WORKDIR /app
