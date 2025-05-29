@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikacja Pogodowa</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Aplikacja Pogodowa</h1>
+        <form action="/weather" method="post" id="weather-form">
+            <div class="form-group">
+                <label for="country">Wybierz kraj:</label>
+                <select id="country" name="country" required>
+                    <option value="">-- Wybierz kraj --</option>
+                    {% for country in countries %}
+                    <option value="{{ country }}">{{ country }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="city">Wybierz miasto:</label>
+                <select id="city" name="city" required disabled>
+                    <option value="">-- Najpierw wybierz kraj --</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit">Sprawdź pogodę</button>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        document.getElementById('country').addEventListener('change', function() {
+            const countrySelect = document.getElementById('country');
+            const citySelect = document.getElementById('city');
+            
+            if (countrySelect.value) {
+                fetch('/get_cities?country=' + countrySelect.value)
+                    .then(response => response.json())
+                    .then(data => {
+                        citySelect.innerHTML = '';
+                        
+                        if (data.cities && data.cities.length > 0) {
+                            const defaultOption = document.createElement('option');
+                            defaultOption.value = '';
+                            defaultOption.textContent = '-- Wybierz miasto --';
+                            citySelect.appendChild(defaultOption);
+                            
+                            data.cities.forEach(city => {
+                                const option = document.createElement('option');
+                                option.value = city;
+                                option.textContent = city;
+                                citySelect.appendChild(option);
+                            });
+                            
+                            citySelect.disabled = false;
+                        } else {
+                            const option = document.createElement('option');
+                            option.value = '';
+                            option.textContent = 'Brak dostępnych miast';
+                            citySelect.appendChild(option);
+                            citySelect.disabled = true;
+                        }
+                    });
+            } else {
+                // Zresetuj wybór miasta
+                citySelect.innerHTML = '<option value="">-- Najpierw wybierz kraj --</option>';
+                citySelect.disabled = true;
+            }
+        });
+    </script>
+</body>
+</html>

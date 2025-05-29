@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wyniki Pogodowe</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Pogoda dla: {{ city }}, {{ country }}</h1>
+        
+        <div class="weather-card">
+            {% if weather.error %}
+                <div class="error">
+                    <p>{{ weather.error }}</p>
+                </div>
+            {% else %}
+                <div class="weather-info">
+                    <div class="weather-icon">
+                        <img src="https://openweathermap.org/img/wn/{{ weather.icon }}@2x.png" alt="Weather icon">
+                    </div>
+                    
+                    <div class="weather-details">
+                        <p class="description">{{ weather.description|capitalize }}</p>
+                        <p class="temperature">{{ weather.temperature|round(1) }}°C</p>
+                        <p>Odczuwalna: {{ weather.feels_like|round(1) }}°C</p>
+                        
+                        <div class="weather-metrics">
+                            <div class="metric">
+                                <span class="label">Wilgotność:</span>
+                                <span class="value">{{ weather.humidity }}%</span>
+                            </div>
+                            
+                            <div class="metric">
+                                <span class="label">Ciśnienie:</span>
+                                <span class="value">{{ weather.pressure }} hPa</span>
+                            </div>
+                            
+                            <div class="metric">
+                                <span class="label">Wiatr:</span>
+                                <span class="value">{{ weather.wind_speed }} m/s</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <div class="back-button">
+                <a href="/">Wróć do wyboru lokalizacji</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
