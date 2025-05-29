@@ -1,5 +1,6 @@
 # Zaktualizowane wersje bez znanych CVE
 Flask==3.0.3
+setuptools>=80.9.0
 requests==2.32.3
 urllib3==2.2.3
 MarkupSafe==3.0.2
