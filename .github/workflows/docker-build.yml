@@ -6,7 +6,7 @@ on:
 
 env:
   IMAGE_NAME: ghcr.io/kooowal/zadanie2_pawcho
-  CACHE_REPO: kooowal/cache-repo  
+  CACHE_REPO: kooowal/cache-repo
 
 jobs:
   build:
@@ -40,7 +40,7 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build image and store locally for scanning
+    - name: Build image locally for scanning
       uses: docker/build-push-action@v5
       with:
         context: .
@@ -51,7 +51,15 @@ jobs:
         cache-to: type=registry,ref=${{ env.CACHE_REPO }}:cache,mode=max
         outputs: type=oci,dest=/tmp/image.tar
 
-    - name: Push image if scan passes
+    - name: Scan image with Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: docker-archive:/tmp/image.tar
+        format: 'table'
+        exit-code: '1'
+        severity: 'CRITICAL,HIGH'
+
+    - name: Push image to GHCR
       if: success()
       uses: docker/build-push-action@v5
       with:
@@ -63,11 +71,3 @@ jobs:
           ${{ env.IMAGE_NAME }}:${{ github.sha }}
         cache-from: type=registry,ref=${{ env.CACHE_REPO }}:cache
         cache-to: type=registry,ref=${{ env.CACHE_REPO }}:cache,mode=max
-
-    - name: Scan image with Trivy
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: ghcr.io/kooowal/zadanie2_pawcho:latest
-        format: 'table'
-        exit-code: '1'
-        severity: 'CRITICAL,HIGH'
