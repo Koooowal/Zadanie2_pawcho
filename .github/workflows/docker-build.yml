@@ -44,15 +44,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Build Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: false
-          tags: temp-scan-image:latest
-          platforms: linux/amd64,linux/arm64
-          cache-from: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/cache:latest
-          cache-to: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/cache:latest,mode=max
+      - name: Build Docker image (local only for scan)
+        run: |
+          docker buildx create --use
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --cache-from=type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/cache:latest \
+            --cache-to=type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/cache:latest,mode=max \
+            --tag temp-scan-image:latest \
+            --load \
+            .
 
       - name: Install Trivy
         uses: aquasecurity/trivy-action@master
