@@ -60,6 +60,9 @@ jobs:
           cache-from: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/cache:latest
           cache-to: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/cache:latest,mode=max
 
+      - name: Force reinstall of setuptools to override older global version
+        run: docker run --rm temp-scan-image:latest pip install --upgrade setuptools==80.9.0
+
       - name: Install Trivy
         uses: aquasecurity/trivy-action@master
         with:
@@ -78,6 +81,8 @@ jobs:
           file: Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            INSTALL_GLOBAL_TOOLS=true
           tags: ghcr.io/${{ github.repository_owner }}/weather-app:latest
           cache-from: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/cache:latest
           cache-to: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/cache:latest,mode=max
