@@ -1,3 +1,14 @@
-Flask==2.3.3
-requests==2.31.0
-Werkzeug==2.3.7
+# Zaktualizowane wersje bez znanych CVE
+Flask==3.0.3
+Werkzeug==3.0.4
+setuptools>=78.1.1
+requests==2.32.3
+urllib3==2.2.3
+MarkupSafe==3.0.2
+Jinja2==3.1.6
+click==8.2.1
+itsdangerous==2.2.0
+blinker==1.9.0
+certifi==2025.4.26
+charset-normalizer==3.4.2
+idna==3.10

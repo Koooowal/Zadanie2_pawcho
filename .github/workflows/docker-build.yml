@@ -40,6 +40,7 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     
+    # Budowanie obrazu tylko dla amd64 do skanowania
     - name: Build image for scanning (amd64 only)
       uses: docker/build-push-action@v5
       with:
@@ -49,6 +50,7 @@ jobs:
         tags: temp-scan-image:latest
         cache-from: type=registry,ref=${{ env.CACHE_REPO }}:cache
     
+    # Skanowanie lokalnego obrazu
     - name: Scan image with Trivy
       uses: aquasecurity/trivy-action@master
       with:
@@ -56,13 +58,16 @@ jobs:
         format: 'table'
         exit-code: '1'
         severity: 'CRITICAL,HIGH'
+        trivyignores: '.trivyignore'
     
+    # Generowanie tagów
     - name: Generate tags
       id: tags
       run: |
         echo "date_tag=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
         echo "short_sha=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
     
+    # Budowanie i wypychanie multi-arch obrazu (tylko jeśli skanowanie przeszło)
     - name: Build and push multi-arch image
       if: success()
       uses: docker/build-push-action@v5
@@ -78,6 +83,7 @@ jobs:
         cache-from: type=registry,ref=${{ env.CACHE_REPO }}:cache
         cache-to: type=registry,ref=${{ env.CACHE_REPO }}:cache,mode=max
         
+    # Czyszczenie lokalnego obrazu
     - name: Clean up local image
       if: always()
       run: docker rmi temp-scan-image:latest || true
