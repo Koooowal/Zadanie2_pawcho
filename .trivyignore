@@ -1,8 +1,0 @@
-# Ignoruj CVE które nie dotyczą naszego use case lub są false positives
-# CVE w systemowych bibliotekach Debian które nie mają fixed version
-CVE-2025-4802  # glibc issue - brak fixed version w Debian 12
-CVE-2023-31484 # perl issue - nie używamy CPAN
-CVE-2023-45853 # zlib issue - status will_not_fix w Debian
-
-# Uwaga: Użyj tego pliku tylko dla CVE które są false positives
-# lub nie dotyczą Twojej aplikacji. Zawsze preferuj aktualizację pakietów.
