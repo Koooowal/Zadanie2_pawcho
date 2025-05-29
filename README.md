@@ -64,7 +64,6 @@ trivy image --exit-code 1 --severity CRITICAL,HIGH ghcr.io/<nazwa_użytkownika>/
 
 **Uzasadnienie wyboru Trivy:** narzędzie jest proste w integracji, open-source, posiada aktywną społeczność i wsparcie CI/CD (w tym GitHub Actions). Lepszy wybór od Docker Scout ze względu na przejrzystość i możliwość konfiguracji poziomów krytyczności.
 
-Źródło: [https://github.com/aquasecurity/trivy](https://github.com/aquasecurity/trivy)
 
 ---
 
@@ -95,7 +94,7 @@ ghcr.io/<nazwa_użytkownika>/<repo>:<SHA>
 * `GITHUB_SHA` gwarantuje niezmienność konkretnej wersji.
 * `latest` zapewnia łatwy dostęp do najnowszego działającego obrazu.
 * Osobny tag `cache` izoluje dane cache od wersji produkcyjnych i jest kompatybilny z mechanizmem BuildKit Registry Cache.
-  Źródło: [https://docs.docker.com/build/cache/backends/registry/](https://docs.docker.com/build/cache/backends/registry/)
+
 
 ---
 
