@@ -51,6 +51,9 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: Dockerfile
+          build-args: |
+            INSTALL_GLOBAL_TOOLS=true
           load: true
           platforms: linux/amd64
           tags: temp-scan-image:latest
@@ -72,6 +75,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
           tags: ghcr.io/${{ github.repository_owner }}/weather-app:latest

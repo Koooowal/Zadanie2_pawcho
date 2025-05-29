@@ -23,7 +23,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 FROM python:3.11-slim
 LABEL org.opencontainers.image.authors="Jan Kowalski"
 
+ARG INSTALL_GLOBAL_TOOLS=false
 RUN apt-get update && apt-get install -y --no-install-recommends curl && \
+    if [ "$INSTALL_GLOBAL_TOOLS" = "true" ]; then pip install --upgrade setuptools==80.9.0; fi && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -36,7 +38,7 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 WORKDIR /app
-COPY app.py ./
+COPY app.py ./  
 COPY templates ./templates/
 COPY static ./static
 
