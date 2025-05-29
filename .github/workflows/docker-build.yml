@@ -54,7 +54,7 @@ jobs:
     - name: Scan image with Trivy
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: 'docker-archive:/tmp/image.tar'
+        image-ref: ghcr.io/kooowal/zadanie2_pawcho:latest
         format: 'table'
         exit-code: '1'
         severity: 'CRITICAL,HIGH'
