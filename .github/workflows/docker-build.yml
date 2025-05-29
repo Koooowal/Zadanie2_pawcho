@@ -1,89 +1,76 @@
-name: Build and Push Multi-Arch Docker Image
+name: Build and Push Docker Image
 
 on:
   push:
-    branches: [ "main" ]
-
-env:
-  IMAGE_NAME: ghcr.io/kooowal/zadanie2_pawcho
-  CACHE_REPO: kooowal/cache-repo
+    branches:
+      - main
 
 jobs:
   build:
-    name: Build and Push
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: read
       packages: write
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-    
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    
-    - name: Login to GHCR
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Login to DockerHub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    
-    # Budowanie obrazu tylko dla amd64 do skanowania
-    - name: Build image for scanning (amd64 only)
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        platforms: linux/amd64
-        load: true
-        tags: temp-scan-image:latest
-        cache-from: type=registry,ref=${{ env.CACHE_REPO }}:cache
-    
-    # Skanowanie lokalnego obrazu
-    - name: Scan image with Trivy
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: temp-scan-image:latest
-        format: 'table'
-        exit-code: '1'
-        severity: 'CRITICAL,HIGH'
-        trivyignores: '.trivyignore'
-    
-    # Generowanie tagów
-    - name: Generate tags
-      id: tags
-      run: |
-        echo "date_tag=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
-        echo "short_sha=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
-    
-    # Budowanie i wypychanie multi-arch obrazu (tylko jeśli skanowanie przeszło)
-    - name: Build and push multi-arch image
-      if: success()
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        platforms: linux/amd64,linux/arm64
-        push: true
-        tags: |
-          ${{ env.IMAGE_NAME }}:latest
-          ${{ env.IMAGE_NAME }}:${{ steps.tags.outputs.date_tag }}
-          ${{ env.IMAGE_NAME }}:${{ steps.tags.outputs.short_sha }}
-          ${{ env.IMAGE_NAME }}:${{ github.sha }}
-        cache-from: type=registry,ref=${{ env.CACHE_REPO }}:cache
-        cache-to: type=registry,ref=${{ env.CACHE_REPO }}:cache,mode=max
-        
-    # Czyszczenie lokalnego obrazu
-    - name: Clean up local image
-      if: always()
-      run: docker rmi temp-scan-image:latest || true
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to DockerHub for cache
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: temp-scan-image:latest
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/cache:latest
+          cache-to: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/cache:latest,mode=max
+
+      - name: Install Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: image
+          image-ref: temp-scan-image:latest
+          format: table
+          exit-code: 1
+          ignore-unfixed: true
+          vuln-type: os,library
+
+      - name: Push Docker image to GHCR
+        if: success()
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/weather-app:latest
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/cache:latest
+          cache-to: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/cache:latest,mode=max
